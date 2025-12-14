@@ -1,13 +1,16 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
-import os
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from app.config import settings
+from typing import AsyncGenerator
 
-load_dotenv()
+# Database setup
+DATABASE_URL = f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://yash:password@localhost:5432/portfolio")
+engine = create_async_engine(DATABASE_URL, echo=False)
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
-Base = declarative_base()
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Dependency that provides a database session."""
+    async with async_session() as session:
+        yield session

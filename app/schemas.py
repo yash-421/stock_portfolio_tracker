@@ -34,26 +34,26 @@ class UserOut(UserBase):
 # Portfolio schemas
 # -----------------------
 class PortfolioCreate(BaseModel):
+    user_id: int  # can be set by server
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
 
 
 class PortfolioOut(BaseModel):
-    id: int
+    portfolio_id: int
     name: str
     description: Optional[str]
-    owner_id: int
+    user_id: int
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
 
 
 # -----------------------
 # Transaction schemas
 # -----------------------
 class TransactionCreate(BaseModel):
-    symbol: str = Field(..., min_length=1, max_length=10)
+    stock_id: int
     shares: conint(strict=True, gt=0)  # positive integer shares
     price: PositiveFloat  # price per share, > 0
     type: TransactionType
@@ -100,3 +100,28 @@ class PriceOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
