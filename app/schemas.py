@@ -1,6 +1,6 @@
 # app/schemas.py
 from __future__ import annotations
-from typing import Optional, List
+from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, conint, PositiveFloat
 from datetime import datetime
@@ -14,27 +14,40 @@ class TransactionType(str, Enum):
 # -----------------------
 # User schemas
 # -----------------------
-class UserBase(BaseModel):
+class UserCreate(BaseModel):
     email: EmailStr
-    full_name: Optional[str] = None
-
-
-class UserCreate(UserBase):
     password: str = Field(..., min_length=6)
+    full_name: str
 
 
-class UserOut(UserBase):
-    id: int
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserOut(BaseModel):
+    user_id: int
+    email: str
+    full_name: Optional[str]
     created_at: datetime
+
     model_config = ConfigDict(from_attributes=True)
 
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
 
 
 # -----------------------
 # Portfolio schemas
 # -----------------------
 class PortfolioCreate(BaseModel):
-    user_id: int  # can be set by server
+    user_id: int
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
 
@@ -54,25 +67,35 @@ class PortfolioOut(BaseModel):
 # -----------------------
 class TransactionCreate(BaseModel):
     stock_id: int
-    shares: conint(strict=True, gt=0)  # positive integer shares
-    price: PositiveFloat  # price per share, > 0
+    shares: conint(strict=True, gt=0)
+    price: PositiveFloat
     type: TransactionType
-    timestamp: Optional[datetime] = None  # server can fill if not provided
-    note: Optional[str] = None
+    timestamp: Optional[datetime] = None
 
 
 class TransactionOut(BaseModel):
-    id: int
+    transaction_id: int
     portfolio_id: int
-    symbol: str
+    stock_id: int
     shares: int
     price: float
     type: TransactionType
     timestamp: datetime
-    note: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
 
+
+# -----------------------
+# Stock schemas
+# -----------------------
+class StockOut(BaseModel):
+    stock_id: int
+    symbol: str
+    name: str
+    exchange: str
+    sector: Optional[str]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # -----------------------
@@ -89,7 +112,6 @@ class HoldingOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-
 # -----------------------
 # Price schema
 # -----------------------
@@ -100,28 +122,6 @@ class PriceOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-    full_name: str
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-class UserOut(BaseModel):
-    id: int
-    email: str
-    full_name: str
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    email: Optional[str] = None
+class Pagination(BaseModel):
+    page_no: int = Field(1, ge=1)
+    record_count: int = Field(15, ge=1, le=50)

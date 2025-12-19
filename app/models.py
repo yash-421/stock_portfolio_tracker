@@ -18,6 +18,8 @@ class Base(DeclarativeBase):
         server_default=func.now(),
         onupdate=func.now()
     )
+    
+    enabled: Mapped[bool] = mapped_column(default=True)
 
 class User(Base):
     __tablename__ = "users"
@@ -104,4 +106,4 @@ class Stock(Base):
     sector: Mapped[str | None] = mapped_column(String(50))
 
     def __repr__(self):
-        return f"<Stock {self.symbol}>"
+        return f"<Stock symbol={self.symbol} name={self.name}  >"
