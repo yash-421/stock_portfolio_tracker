@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.encoders import jsonable_encoder
-from app.service import format_holdings, get_portfolio_performance, get_response, porfolio_exist_or_not, portfolio_summary_data
+from app.service import format_holdings, get_portfolio_performance, get_response, porfolio_exist, portfolio_summary_data
 from sqlalchemy import desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.connection import get_db
@@ -27,7 +27,7 @@ async def get_holdings(
 
     try:
         
-        exist,portfolio=await porfolio_exist_or_not(portfolio_id,db,current_user.user_id)
+        exist,portfolio=await porfolio_exist(portfolio_id,db,current_user.user_id)
 
 
         if not exist:
@@ -86,7 +86,7 @@ async def portfolio_summary(
     current_user=Depends(get_current_user)
 ):
     try:
-        found,portfolio= await porfolio_exist_or_not(portfolio_id,db,current_user.user_id)
+        found,portfolio= await porfolio_exist(portfolio_id,db,current_user.user_id)
         
         if not found:
             
@@ -118,7 +118,7 @@ async def get_performance(
     db: AsyncSession = Depends(get_db),
 ):
     try:
-        is_exist, portfolio = await porfolio_exist_or_not(
+        is_exist, portfolio = await porfolio_exist(
             portfolio_id, db, current_user.user_id
         )
 

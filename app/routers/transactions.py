@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.encoders import jsonable_encoder
-from app.service import get_response, get_transaction, porfolio_exist_or_not
+from app.service import get_response, get_transaction, porfolio_exist
 from sqlalchemy import desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.connection import get_db
@@ -28,7 +28,7 @@ async def add_transaction(
     """Add a transaction to a portfolio."""
     try:
         # Check portfolio exists and belongs to user
-        exist,result = await porfolio_exist_or_not(portfolio_id,db,current_user.user_id) 
+        exist,result = await porfolio_exist(portfolio_id,db,current_user.user_id) 
         
         if not exist:
             return get_response(
@@ -110,7 +110,7 @@ async def add_transaction(
 @router.get('/{portfolio_id}/transactions')
 async def get_transactions(pagination:Pagination,portfolio_id:int,symbol:Optional[str]=None,type:Optional[TransactionType]=None,from_date:Optional[date]=None,to_date:Optional[date]=None, current_user=Depends(get_current_user),db:AsyncSession=Depends(get_db)):
     try:
-        is_exist,data = await porfolio_exist_or_not(portfolio_id,db,current_user.user_id)
+        is_exist,data = await porfolio_exist(portfolio_id,db,current_user.user_id)
         
         if not is_exist:
             return get_response(

@@ -12,7 +12,7 @@ class Settings:
         self.POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
         self.POSTGRES_DB = os.getenv("POSTGRES_DB", "stock_tracker")
         # SECRET_KEY should be provided via environment in production
-        self.SECRET_KEY = os.getenv("SECRET_KEY")
+        self.SECRET_KEY = os.getenv("SECRET_KEY","SECRET_KEY")
         self.ALGORITHM = os.getenv("ALGORITHM", "HS256")
         self.ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 

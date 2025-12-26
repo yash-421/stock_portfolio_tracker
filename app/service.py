@@ -136,7 +136,7 @@ async def portfolio_summary_data(portfolio_id, db: AsyncSession):
         logger.exception("Error while calculating portfolio summary for %s", portfolio_id)
         return False, None
 
-async def porfolio_exist_or_not(portfolio_id:int, db:AsyncSession,user_id :int=None):
+async def porfolio_exist(portfolio_id:int, db:AsyncSession,user_id :int=None):
     try:
         stmt = select(Portfolio).where(Portfolio.portfolio_id == portfolio_id)
         if user_id:
