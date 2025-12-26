@@ -21,15 +21,12 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
         result = await db.execute(
             select(User).where(User.email == user.email)
         )
-        existing_user = result.scalars().first()
+        existing_user = result.first()
         if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "status": "error",
-                    "data": None,
-                    "message": "Email already registered."
-                }
+            return get_response(
+                status_code_enum=status.HTTP_400_BAD_REQUEST,
+                data=None,
+                message="Email already registered."
             )
         
         # Create new user
@@ -43,17 +40,13 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
         await db.refresh(new_user)
 
         return new_user
-    except HTTPException:
-        raise
+
     except Exception as e:
         await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "status": "error",
-                "data": str(e),
-                "message": "An error occurred during registration."
-            }
+        return get_response(
+            status_code_enum=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            data=str(e),
+            message="An error occurred while retrieving the portfolio."
         )
 
 
@@ -80,7 +73,11 @@ async def login(
         if not existing_user or not verify_password(
             user.password, existing_user.hashed_password
         ):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            return get_response(
+                status_code_enum=status.HTTP_401_UNAUTHORIZED,
+                data=None,
+                message="Invalid credentials"
+            )
 
         token = create_access_token({"user_id": existing_user.user_id})
 
@@ -88,12 +85,12 @@ async def login(
             "access_token": token,
             "token_type": "bearer"
         }
-    except HTTPException:
-        raise
+
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+        return get_response(
+            status_code_enum=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            data=str(e),
+            message="An error occurred while retrieving the portfolio."
         )
 
 

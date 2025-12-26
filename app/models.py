@@ -1,6 +1,6 @@
 import enum
 from sqlalchemy.orm import DeclarativeBase, relationship
-from sqlalchemy import String,Enum, ForeignKey, Float
+from sqlalchemy import BigInteger, Date, Numeric, String,Enum, ForeignKey, Float, Text, UniqueConstraint
 from datetime import datetime
 from sqlalchemy import DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -41,7 +41,6 @@ class ExchangeType(enum.Enum):
     bse = "bse"
     nse = "nse"
 
-
 class Transaction(Base):
     __tablename__ = "transactions"
 
@@ -59,6 +58,7 @@ class Transaction(Base):
         nullable=False
     )
     shares: Mapped[int] = mapped_column(nullable=False)
+    balance:Mapped[int] =mapped_column(nullable=False,default=0)
     price: Mapped[float] = mapped_column(Float, nullable=False)
 
     type: Mapped[TransactionType] = mapped_column(
@@ -69,6 +69,10 @@ class Transaction(Base):
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=datetime.utcnow
+    )
+    parent_id : Mapped[int]=mapped_column(
+        ForeignKey("transactions.transaction_id", ondelete="CASCADE"),
+        nullable=True
     )
 
     def __repr__(self) -> str:
@@ -104,6 +108,42 @@ class Stock(Base):
         nullable=False
     )
     sector: Mapped[str | None] = mapped_column(String(50))
+    
+    __table_args__=(
+        UniqueConstraint("symbol", "exchange", name="uq_stock_entry"),
+    )
+
+    
 
     def __repr__(self):
         return f"<Stock symbol={self.symbol} name={self.name}  >"
+
+class StockPriceHistory(Base):
+    __tablename__ = "stock_price_history"
+    stock_price_history_id:Mapped[int]=mapped_column(primary_key=True)
+    stock_id:Mapped[int]=mapped_column(
+        ForeignKey("stocks.stock_id", ondelete="CASCADE"),
+        index=True, 
+        nullable=False
+    )
+    price_date:Mapped[datetime.date]=mapped_column(
+        Date,
+        index=True,
+        nullable=False
+    )
+    open_price: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+    high_price: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+    low_price: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+    close_price: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+    adjusted_close: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+    volume: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    source: Mapped[str] = mapped_column(String(50), nullable=False,default="yahoo")
+
+    __table_args__ = (
+        UniqueConstraint("stock_id", "price_date", name="uq_stock_date"),
+    )
+    
+    def __repr__(self):
+        return f"<StockPriceHistory stock_id={self.stock_id} date={self.price_date}>"
+
+

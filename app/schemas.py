@@ -5,6 +5,8 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, conint, PositiveFloat
 from datetime import datetime
 
+from app.models import ExchangeType
+
 
 class TransactionType(str, Enum):
     buy = "buy"
@@ -70,7 +72,8 @@ class TransactionCreate(BaseModel):
     shares: conint(strict=True, gt=0)
     price: PositiveFloat
     type: TransactionType
-    timestamp: Optional[datetime] = None
+    timestamp: Optional[datetime] = datetime.utcnow()
+    parent_id:Optional[int]=None
 
 
 class TransactionOut(BaseModel):
@@ -125,3 +128,9 @@ class PriceOut(BaseModel):
 class Pagination(BaseModel):
     page_no: int = Field(1, ge=1)
     record_count: int = Field(15, ge=1, le=50)
+
+class StockCreate(BaseModel):
+    symbol: str
+    name: str
+    exchange: ExchangeType
+    sector: Optional[str] = None
